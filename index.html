@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Matcha & Co.</title>
+  <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/5889/5889003.png">
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <style>
+* {
+    box-sizing: border-box;
+    font-family: Helvetica, sans-serif;
+}
+
+body {
+    display: flex;
+    padding: 20px;
+    gap: 20px;
+    background: #8ba888;
+}
+
+.categories {
+    width: 20%;
+    background: #eee;
+    border-radius: 15px;
+    padding: 12px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    overflow-y: auto;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.categories button {
+    padding: 12px 8px;
+    border: none;
+    background: #eee;
+    cursor: pointer;
+    border-radius: 10px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.95rem;
+    transition: background 0.3s ease, transform 0.2s ease;
+}
+
+.categories button:hover {
+    background: #ccc;
+    transform: translateY(-2px);
+}
+
+.categories button img {
+    width: 60px;
+    height: 60px;
+    object-fit: contain;
+}
+
+.menu {
+    width: 70%;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+}
+
+.item {
+    background: white;
+    border-radius: 15px;
+    padding: 10px;
+    text-align: center;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+.item img {
+    width: 100%;
+    height: 150px;
+    object-fit: contain;
+    border-radius: 10px;
+    background-color: white;
+}
+
+.item h4, .item p {
+    margin: 5px 0;
+}
+
+.item h4 {
+    color: #181C14; 
+}
+
+.item p {
+    color: #44624a; 
+}
+
+.controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+}
+
+.controls input {
+    width: 50px;
+    padding: 6px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    text-align: center;
+}
+
+.controls button {
+    background: #44624a;
+    color: #fff;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.3s ease, transform 0.2s ease;
+}
+
+.controls button:hover {
+    background: #8ba888;
+    transform: scale(1.05);
+}
+
+.summary {
+    width: 22%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    background: white;
+    border-radius: 10px;
+    padding: 15px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+.summary h3, .summary button {
+    color: #44624a; 
+    margin-top: 10px;
+}
+
+.summary button {
+    background: #44624a;
+    color: #fff;
+    border: none;
+    padding: 12px;
+    border-radius: 10px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.3s ease, transform 0.2s ease;
+}
+
+#receiptContainer {
+    display: none;
+    background: white;
+    border: 1px solid #ccc;
+    padding: 15px;
+    border-radius: 10px;
+}
+</style>
+</head>
+<body>
+    <div class="categories">
+        <button data-filter="all">
+          <img src="https://png.pngtree.com/png-clipart/20241016/original/pngtree-green-matcha-leaf-png-image_16343326.png" alt="All">
+          All Items
+        </button>
+        <button data-filter="drink">
+          <img src="https://blenz.com/wp-content/uploads/2023/08/blenz-iced-matcha-latte.png" alt="Drinks">
+          Drinks
+        </button>
+        <button data-filter="pastry">
+          <img src="https://d2s742iet3d3t1.cloudfront.net/restaurants/restaurant-173674000000000000/menu/items/7/item-900000000425924847_1694671630.png?size=medium" alt="Pastries">
+          Pastries
+        </button>
+        <button data-filter="dessert">
+          <img src="https://static.vecteezy.com/system/resources/previews/046/032/458/non_2x/green-matcha-soft-serve-ice-cream-cone-creamy-delicious-and-refreshing-summer-treat-free-png.png" alt="Desserts">
+          Desserts
+        </button>
+      </div>
+      
+  <div class="menu"></div>
+
+  <div class="summary">
+    <div>
+      <h3>Total: ₱<span id="total">0.00</span></h3>
+    </div>
+    <button id="checkout">Checkout</button>
+  </div>
+
+  <div id="receiptContainer"></div>
+
+  <script>
+    const menuItems = [
+      {id: 1, name: "Iced Matcha Latte", price: 115, category: "drink", img: "https://blenz.com/wp-content/uploads/2023/08/blenz-iced-matcha-latte.png"},
+      {id: 2, name: "Hot Matcha Latte", price: 110, category: "drink", img: "https://png.pngtree.com/png-vector/20250111/ourmid/pngtree-warm-matcha-latte-with-a-velvety-texture-png-image_15148905.png"},
+      {id: 3, name: "Matcha Frappe", price: 130, category: "drink", img: "https://static.vecteezy.com/system/resources/thumbnails/049/160/027/small_2x/matcha-milkshake-topped-with-fresh-leaves-and-a-striped-straw-png.png"},
+      {id: 4, name: "Matcha Cheesecake", price: 185, category: "pastry", img: "https://d2s742iet3d3t1.cloudfront.net/restaurants/restaurant-173674000000000000/menu/items/7/item-900000000425924847_1694671630.png?size=medium"},
+      {id: 5, name: "Matcha Croissant", price: 90, category: "pastry", img: "https://png.pngtree.com/png-clipart/20240314/original/pngtree-croissant-green-tea-with-almond-png-image_14583069.png"},
+      {id: 6, name: "Matcha Roll Cake", price: 95, category: "pastry", img: "https://sevenleavestea.com/wp-content/uploads/2022/05/matcha_roll_cake-1-2.png"},
+      {id: 7, name: "Matcha Ice Cream", price: 80, category: "dessert", img: "https://static.vecteezy.com/system/resources/previews/046/032/458/non_2x/green-matcha-soft-serve-ice-cream-cone-creamy-delicious-and-refreshing-summer-treat-free-png.png"},
+      {id: 8, name: "Matcha Mochi", price: 100, category: "dessert", img: "https://bubbiesicecream.com/cdn/shop/products/ProductHero-Staged_Green-Tea_480x.png?v=1642685305"},
+      {id: 9, name: "Matcha Pudding", price: 85, category: "dessert", img: "https://sevenleavestea.com/wp-content/uploads/2022/05/matcha_azuki_shiratama_latte_hot-1-1.png"},
+      {id: 10, name: "Matcha Parfait", price: 140, category: "dessert", img: "https://sevenleavestea.com/wp-content/uploads/2022/05/matcha_shiratama_parfait-1.png"}
+    ];
+
+    let cart = {};
+
+    function renderMenu(filter = 'all') {
+      $('.menu').empty();
+      const filteredItems = filter === 'all' ? menuItems : menuItems.filter(item => item.category === filter);
+      filteredItems.forEach(item => {
+        $('.menu').append(`
+          <div class="item" data-id="${item.id}">
+            <img src="${item.img}" alt="${item.name}">
+            <h4>${item.name}</h4>
+            <p>₱${item.price}</p>
+            <div class="controls">
+              <input type="number" min="1" value="1" class="qty">
+              <button class="add">Add</button>
+            </div>
+          </div>
+        `);
+      });
+    }
+
+    function updateTotal() {
+      let total = 0;
+      for (const id in cart) {
+        total += cart[id].price * cart[id].qty;
+      }
+      $('#total').text(total.toFixed(2));
+    }
+
+    $(document).on('click', '.add', function() {
+      const itemDiv = $(this).closest('.item');
+      const id = itemDiv.data('id');
+      const qty = parseInt(itemDiv.find('.qty').val());
+      const item = menuItems.find(i => i.id === id);
+
+      if (cart[id]) {
+        cart[id].qty += qty;
+      } else {
+        cart[id] = { ...item, qty };
+      }
+      updateTotal();
+    });
+
+    $('.categories button').on('click', function() {
+      const filter = $(this).data('filter');
+      renderMenu(filter);
+    });
+
+    $('#checkout').on('click', function() {
+      if (Object.keys(cart).length === 0) return alert("Cart is empty!");
+
+      let receipt = '<h3>Receipt</h3><ul>';
+      let total = 0;
+      for (const id in cart) {
+        const item = cart[id];
+        total += item.price * item.qty;
+        receipt += `<li>${item.name} x ${item.qty} = ₱${item.price * item.qty}</li>`;
+      }
+      receipt += `</ul><p>Total: ₱${total.toFixed(2)}</p>`;
+      receipt += '<label>Enter payment: ₱<input type="number" id="payment"></label> <button id="payBtn">Pay</button>';
+
+      $('#receiptContainer').html(receipt).show();
+    });
+
+    $(document).on('click', '#payBtn', function() {
+      const payment = parseFloat($('#payment').val());
+      let total = 0;
+      for (const id in cart) {
+        total += cart[id].price * cart[id].qty;
+      }
+
+      if (payment < total) {
+        alert("Insufficient balance. Please try again.");
+        return;
+      }
+
+      const change = (payment - total).toFixed(2);
+      let finalReceipt = '<h3>Final Receipt</h3><ul>';
+      for (const id in cart) {
+        const item = cart[id];
+        finalReceipt += `<li>${item.name} x ${item.qty} = ₱${item.price * item.qty}</li>`;
+      }
+      finalReceipt += `</ul>
+        <p>Total: ₱${total.toFixed(2)}</p>
+        <p>Payment: ₱${payment.toFixed(2)}</p>
+        <p>Change: ₱${change}</p>`;
+
+      $('#receiptContainer').html(finalReceipt);
+      cart = {};
+      updateTotal();
+    });
+
+    renderMenu();
+  </script>
+</body>
+</html>
